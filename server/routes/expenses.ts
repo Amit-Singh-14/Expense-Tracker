@@ -1,7 +1,13 @@
 import { Hono } from "hono";
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
+//@ts-ignore
 import { getUser } from "../kinde";
+//@ts-ignore
+import { db } from "../db";
+//@ts-ignore
+import { expense as expenseTable } from "../db/schema/expenses";
+import { and, desc, eq, sum } from "drizzle-orm";
 
 // type Expense = {
 //   id: number;
@@ -12,50 +18,96 @@ import { getUser } from "../kinde";
 const expenseSchema = z.object({
   id: z.number().int().positive().min(1),
   title: z.string().min(3).max(100),
-  amount: z.number().int().positive(),
+  amount: z.string(),
 });
 
 const createPostSchema = expenseSchema.omit({ id: true });
 
-type Expense = z.infer<typeof expenseSchema>;
+// type Expense = z.infer<typeof expenseSchema>;
 
-const fakeExpenses: Expense[] = [
-  { id: 1, title: "asdasda", amount: 232 },
-  { id: 2, title: "xcvxcv", amount: 22 },
-];
+// const fakeExpenses: Expense[] = [
+//   { id: 1, title: "asdasda", amount: "232" },
+//   { id: 2, title: "xcvxcv", amount: "22" },
+// ];
 
 export const expresesRoute = new Hono()
-  .get("/", getUser, (c) => {
+  .get("/", getUser, async (c) => {
     const user = c.var.user;
-    return c.json({ expenses: fakeExpenses });
-  })
-  .post("/", getUser, zValidator("json", createPostSchema), (c) => {
-    const expense = c.req.valid("json");
-    fakeExpenses.push({ ...expense, id: fakeExpenses.length + 1 });
-    console.log(fakeExpenses);
 
+    //dp select from drizzle orm
+    const expense = await db
+      .select()
+      .from(expenseTable)
+      .where(eq(expenseTable.userId, user.id))
+      .orderBy(desc(expenseTable.createdAt))
+      .limit(20);
+
+    return c.json({ expenses: expense });
+  })
+  .post("/", getUser, zValidator("json", createPostSchema), async (c) => {
+    const user = c.var.user;
+    const expense = c.req.valid("json");
+
+    const result = await db
+      .insert(expenseTable)
+      .values({
+        ...expense,
+        userId: user.id,
+      })
+      .returning();
+
+    // console.log(fakeExpenses);
+    c.status(201);
+    return c.json(result);
+  })
+  .get("/total-spent", getUser, async (c) => {
+    const user = c.var.user;
+
+    const result = await db
+      .select({ total: sum(expenseTable.amount) })
+      .from(expenseTable)
+      .where(eq(expenseTable.userId, user.id))
+      .limit(1)
+      // return array of object but for safltey
+      .then((res) => res[0]);
+
+    // const total = fakeExpenses.reduce((acc, exp) => acc + Number(exp.amount), 0);
+    return c.json(result);
+  })
+
+  .get("/:id{[0-9]+}", getUser, async (c) => {
+    const id = Number.parseInt(c.req.param("id"));
+
+    const user = c.var.user;
+
+    const expense = await db
+      .select()
+      .from(expenseTable)
+      .where(and(eq(expenseTable.userId, user.id), eq(expenseTable.id, id)))
+      .then((res) => res[0]);
+
+    // const exp = fakeExpenses.find((e) => e.id === id);
+    if (!expense) return c.notFound();
     return c.json({ expense });
   })
-  .get("/total-spent", getUser, (c) => {
-    const total = fakeExpenses.reduce((acc, exp) => acc + exp.amount, 0);
-    return c.json({ total });
-  })
 
-  .get("/:id{[0-9]+}", getUser, (c) => {
+  .delete("/:id{[0-9]+}", getUser, async (c) => {
     const id = Number.parseInt(c.req.param("id"));
-    const exp = fakeExpenses.find((e) => e.id === id);
-    if (!exp) return c.notFound();
-    return c.json({ exp });
-  })
+    const user = c.var.user;
 
-  .delete("/:id{[0-9]+}", getUser, (c) => {
-    const id = Number.parseInt(c.req.param("id"));
+    const deleteExp = await db
+      .delete(expenseTable)
+      .where(and(eq(expenseTable.userId, user.id), eq(expenseTable.id, id)))
+      .returning()
+      .then((res) => res[0]);
 
-    const index = fakeExpenses.findIndex((e) => e.id === id);
-    if (index === -1) return c.notFound();
+    // const index = fakeExpenses.findIndex((e) => e.id === id);
+    // if (index === -1) return c.notFound();
 
     //splice return an array of deleted item getting the first only
-    const deleteExp = fakeExpenses.splice(index, 1)[0];
+    // const deleteExp = fakeExpenses.splice(index, 1)[0];
+
+    if (!deleteExp) return c.notFound();
 
     return c.json({ deleteExp });
   });
