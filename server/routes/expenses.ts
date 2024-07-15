@@ -47,7 +47,8 @@ export const expresesRoute = new Hono()
         ...expense,
         userId: user.id,
       })
-      .returning();
+      .returning()
+      .then((r) => r[0]);
 
     // console.log(fakeExpenses);
     c.status(201);

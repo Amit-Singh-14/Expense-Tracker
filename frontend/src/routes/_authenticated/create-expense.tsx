@@ -3,17 +3,25 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useForm } from "@tanstack/react-form";
-import client from "@/lib/api";
+import { toast } from "sonner";
+import client, {
+  createNewExpense,
+  getAllExpnensesQueryOptions,
+  loadingCreateExpenseQueryOptions,
+} from "@/lib/api";
 import { zodValidator } from "@tanstack/zod-form-adapter";
 import { Calendar } from "@/components/ui/calendar";
 
 import { createExpenseSchema } from "../../../../server/sharedTypes";
+import { useQueryClient } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/_authenticated/create-expense")({
   component: CreateExpense,
 });
 
 function CreateExpense() {
+  const queryClient = useQueryClient();
+
   const navigate = useNavigate();
   const form = useForm({
     validatorAdapter: zodValidator(),
@@ -24,10 +32,31 @@ function CreateExpense() {
     },
     onSubmit: async ({ value }) => {
       // Do something with form data
-      const res = await client.api.expenses.$post({ json: value });
-      if (!res.ok) throw new Error("crating expnese error");
+      const existingExpenses = await queryClient.ensureQueryData(getAllExpnensesQueryOptions);
+
       navigate({ to: "/expenses" });
-      console.log(value);
+
+      queryClient.setQueryData(loadingCreateExpenseQueryOptions.queryKey, { expense: value });
+
+      try {
+        const newExpense = await createNewExpense(value);
+
+        queryClient.setQueryData(getAllExpnensesQueryOptions.queryKey, {
+          ...existingExpenses,
+          expenses: [newExpense, ...existingExpenses.expenses],
+        });
+        toast("Expense created", {
+          description: `Successfully created new expense: ${newExpense.id}`,
+        });
+      } catch (error) {
+        toast("error", {
+          description: "Failed to create new expense",
+        });
+      } finally {
+        queryClient.setQueryData(loadingCreateExpenseQueryOptions.queryKey, {});
+      }
+
+      // console.log(value);
     },
   });
 
