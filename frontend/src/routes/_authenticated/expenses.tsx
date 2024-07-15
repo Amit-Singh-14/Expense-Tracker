@@ -44,16 +44,20 @@ function Expenses() {
             <TableHead className="w-[100px]">id</TableHead>
             <TableHead>title</TableHead>
             <TableHead>amount</TableHead>
+            <TableHead>date</TableHead>
           </TableRow>
         </TableHeader>
 
         {isPending ? (
           <TableBody>
-            {Array(3)
+            {Array(4)
               .fill(0)
               .map((_, id) => (
                 <TableRow key={id}>
                   <TableCell className="font-medium">
+                    <Skeleton className="h-4 " />
+                  </TableCell>
+                  <TableCell>
                     <Skeleton className="h-4 " />
                   </TableCell>
                   <TableCell>
@@ -72,6 +76,7 @@ function Expenses() {
                 <TableCell className="font-medium">{expense.id}</TableCell>
                 <TableCell>{expense.title}</TableCell>
                 <TableCell>{expense.amount}</TableCell>
+                <TableCell>{expense.date}</TableCell>
               </TableRow>
             ))}
           </TableBody>
