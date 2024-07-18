@@ -6,7 +6,8 @@ import client, {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Trash } from "lucide-react";
+import { Trash, Utensils, House, Car, Video, Hospital, ClipboardPenLine } from "lucide-react";
+import { Category } from "../../../../server/sharedTypes";
 import {
   Table,
   TableBody,
@@ -29,6 +30,19 @@ function Expenses() {
 
   if (error) return "" + error.message;
 
+  const setIcon = (item: Category) => {
+    const categoryIcons = {
+      Food: <Utensils />,
+      Transportation: <Car />,
+      Housing: <House />,
+      Entertainment: <Video />,
+      Health: <Hospital />,
+      Other: <ClipboardPenLine />,
+    };
+
+    return categoryIcons[item];
+  };
+
   return (
     <div className="p-2 max-w-3xl m-auto">
       <Table>
@@ -39,26 +53,14 @@ function Expenses() {
             <TableHead>Title</TableHead>
             <TableHead>Amount</TableHead>
             <TableHead>Date</TableHead>
+            <TableHead>Category</TableHead>
             <TableHead>Delete</TableHead>
           </TableRow>
         </TableHeader>
-        {loadingCreateExpense?.expense && (
-          <TableRow>
-            <TableCell className="font-medium">
-              <Skeleton className="h-4 " />
-            </TableCell>
-            <TableCell>{loadingCreateExpense.expense.title}</TableCell>
-            <TableCell>{loadingCreateExpense.expense.amount}</TableCell>
-            <TableCell>{loadingCreateExpense.expense.date.split("T")[0]}</TableCell>
-            <TableCell>
-              {" "}
-              <Skeleton className="h-4 " />
-            </TableCell>
-          </TableRow>
-        )}
+
         {isPending ? (
           <TableBody>
-            {Array(4)
+            {Array(5)
               .fill(0)
               .map((_, id) => (
                 <TableRow key={id}>
@@ -82,12 +84,27 @@ function Expenses() {
           </TableBody>
         ) : (
           <TableBody>
+            {loadingCreateExpense?.expense && (
+              <TableRow>
+                <TableCell className="font-medium">
+                  <Skeleton className="h-4 " />
+                </TableCell>
+                <TableCell>{loadingCreateExpense.expense.title}</TableCell>
+                <TableCell>{loadingCreateExpense.expense.amount}</TableCell>
+                <TableCell>{loadingCreateExpense.expense.date.split("T")[0]}</TableCell>
+                <TableCell>{loadingCreateExpense.expense.category}</TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 " />
+                </TableCell>
+              </TableRow>
+            )}
             {data?.expenses.map((expense) => (
               <TableRow key={expense.id}>
                 <TableCell className="font-medium">{expense.id}</TableCell>
                 <TableCell>{expense.title}</TableCell>
                 <TableCell>{expense.amount}</TableCell>
                 <TableCell>{expense.date}</TableCell>
+                <TableCell>{setIcon(expense.category)}</TableCell>
                 <TableCell>
                   <ExpenseDeleteButton id={expense.id} />
                 </TableCell>

@@ -8,4 +8,15 @@ export const createExpenseSchema = insertExpenseSchema.omit({
   id: true,
 });
 
+export const categories = [
+  "Food",
+  "Transportation",
+  "Housing",
+  "Entertainment",
+  "Health",
+  "Other",
+] as const;
+
+export type Category = (typeof categories)[number];
+
 export type CreateExpense = z.infer<typeof createExpenseSchema>;

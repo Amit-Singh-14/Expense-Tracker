@@ -14,6 +14,7 @@ import { Calendar } from "@/components/ui/calendar";
 
 import { createExpenseSchema } from "../../../../server/sharedTypes";
 import { useQueryClient } from "@tanstack/react-query";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 export const Route = createFileRoute("/_authenticated/create-expense")({
   component: CreateExpense,
@@ -29,6 +30,7 @@ function CreateExpense() {
       title: "",
       amount: "0",
       date: new Date().toISOString(),
+      category: "Other",
     },
     onSubmit: async ({ value }) => {
       // Do something with form data
@@ -56,7 +58,7 @@ function CreateExpense() {
         queryClient.setQueryData(loadingCreateExpenseQueryOptions.queryKey, {});
       }
 
-      // console.log(value);
+      console.log(value);
     },
   });
 
@@ -106,6 +108,51 @@ function CreateExpense() {
                 onBlur={field.handleBlur}
                 onChange={(e) => field.handleChange(e.target.value)}
               />
+              {field.state.meta.touchedErrors ? <em>{field.state.meta.touchedErrors}</em> : null}
+            </div>
+          )}
+        />
+        <form.Field
+          name="category"
+          validators={{
+            onChange: createExpenseSchema.shape.category,
+          }}
+          children={(field) => (
+            <div>
+              <Label htmlFor={field.category}>category:</Label>
+              <RadioGroup
+                defaultValue="Other"
+                id={field.category}
+                name={field.category}
+                value={field.state.value}
+                onValueChange={(e) => field.handleChange(e)}
+                className="flex justify-center"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="Food" id="Food" />
+                  <Label htmlFor="Food">Food</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="Transportation" id="Transportation" />
+                  <Label htmlFor="Transportation">Transportation</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="Housing" id="Housing" />
+                  <Label htmlFor="Housing">Housing</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="Entertainment" id="Entertainment" />
+                  <Label htmlFor="Entertainment">Entertainment</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="Health" id="Health" />
+                  <Label htmlFor="Health">Health</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="Other" id="Other" />
+                  <Label htmlFor="Other">Other</Label>
+                </div>
+              </RadioGroup>
               {field.state.meta.touchedErrors ? <em>{field.state.meta.touchedErrors}</em> : null}
             </div>
           )}

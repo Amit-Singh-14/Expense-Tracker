@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1720070678008,
-      "tag": "0000_cold_dragon_man",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1720072927196,
-      "tag": "0001_special_metal_master",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1720414543778,
-      "tag": "0002_youthful_cammi",
+      "when": 1721300691963,
+      "tag": "0000_open_madame_web",
       "breakpoints": true
     }
   ]

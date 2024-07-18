@@ -1,5 +1,5 @@
 {
-  "id": "0f69f913-5ef4-4969-9540-017efaa6d060",
+  "id": "fd60fcc0-0505-479a-b465-af7dfed61d2e",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -31,6 +31,27 @@
           "type": "numeric(12, 2)",
           "primaryKey": false,
           "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "date": {
+          "name": "date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "category": {
+          "name": "category",
+          "type": "category",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'Other'"
         }
       },
       "indexes": {
@@ -55,7 +76,20 @@
       "uniqueConstraints": {}
     }
   },
-  "enums": {},
+  "enums": {
+    "public.category": {
+      "name": "category",
+      "schema": "public",
+      "values": [
+        "Food",
+        "Transportation",
+        "Housing",
+        "Entertainment",
+        "Health",
+        "Other"
+      ]
+    }
+  },
   "schemas": {},
   "_meta": {
     "columns": {},

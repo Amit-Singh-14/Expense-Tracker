@@ -50,7 +50,6 @@ export const expresesRoute = new Hono()
       .returning()
       .then((r) => r[0]);
 
-    // console.log(fakeExpenses);
     c.status(201);
     return c.json(result);
   })
